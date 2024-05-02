@@ -1,12 +1,14 @@
 import React from "react";
 import { Link } from "expo-router";
-import { View, Text } from "react-native";
+import { View, Text, Heading } from "native-base";
 
 export default function Welcome() {
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>It's Welcome screen</Text>
-      <Link href="/home">Go to home</Link>
+      <Heading>It's Welcome screen</Heading>
+      <Link href="/home">
+        <Text fontSize="lg">Go to home</Text>
+      </Link>
     </View>
   );
 }
