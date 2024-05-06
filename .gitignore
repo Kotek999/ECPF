@@ -6,6 +6,9 @@ node_modules/
 dist/
 web-build/
 
+# Native Base
+patches
+
 # Native
 *.orig.*
 *.jks
