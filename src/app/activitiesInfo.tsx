@@ -27,6 +27,13 @@ export default function ActivitiesInfo() {
     elapsedTime: number;
   };
 
+  const getCurrentTime = (): string => {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, "0");
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
+
   const [tasks, setTasks] = useState<Task[]>([]);
 
   const [selectedTask, setSelectedTask] = useState<string>("");
@@ -38,6 +45,8 @@ export default function ActivitiesInfo() {
 
   const [isSelectedActivity, setIsSelectedActivity] = useState<boolean>(false);
 
+  const [endTimes, setEndTimes] = useState<string[]>([]);
+
   const availableTasks: string[] = [
     "Task 1",
     "Task 2",
@@ -45,6 +54,21 @@ export default function ActivitiesInfo() {
     "Task 4",
     "Task 5",
     "Task 6",
+    "Task 7",
+    "Task 8",
+    "Task 9",
+    "Task 10",
+    "Task 11",
+    "Task 12",
+    "Task 13",
+    "Task 14",
+    "Task 15",
+    "Task 16",
+    "Task 17",
+    "Task 18",
+    "Task 19",
+    "Task 20",
+    "Task 21",
   ];
 
   const addTask = () => {
@@ -55,6 +79,9 @@ export default function ActivitiesInfo() {
 
     if (tasks.length > 0) {
       clearInterval(intervalIds[tasks.length - 1]);
+      const updatedEndTimes = [...endTimes];
+      updatedEndTimes[tasks.length - 1] = getCurrentTime();
+      setEndTimes(updatedEndTimes);
       setIsTimeRunning((prev) =>
         prev.map((value, index) => (index === tasks.length - 1 ? false : value))
       );
@@ -91,6 +118,9 @@ export default function ActivitiesInfo() {
       ]);
     } else {
       clearInterval(intervalIds[index]);
+      const updatedEndTimes = [...endTimes];
+      updatedEndTimes[index] = getCurrentTime();
+      setEndTimes(updatedEndTimes);
     }
   };
 
@@ -130,9 +160,24 @@ export default function ActivitiesInfo() {
     const seconds = timeInSeconds % 60;
 
     if (hours > 0) {
-      return `${hours}g ${minutes}m ${seconds}s`;
+      // return `${hours} godz ${minutes} min`;
+      return `${hours} godz`;
     } else if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
+      return `${minutes} min`;
+    } else {
+      return `${seconds} s`;
+    }
+  };
+
+  const formatElapsedTimeWithSeconds = (timeInSeconds: number): string => {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = timeInSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}godz ${minutes}min ${seconds}s`;
+    } else if (minutes > 0) {
+      return `${minutes} min ${seconds} s`;
     } else {
       return `${seconds}s`;
     }
@@ -143,10 +188,21 @@ export default function ActivitiesInfo() {
     tasks.forEach((task) => {
       totalSeconds += task.elapsedTime;
     });
-    return formatElapsedTime(totalSeconds);
+    return formatElapsedTimeWithSeconds(totalSeconds);
   };
 
   const handleShowTotalTime = () => {
+    const currentTime = getCurrentTime();
+    const updatedEndTimes = endTimes.map(() => currentTime);
+    setEndTimes(updatedEndTimes);
+
+    const lastTaskIndex = tasks.length - 1;
+    if (lastTaskIndex >= 0) {
+      const updatedEndTimesForLastTask = [...endTimes];
+      updatedEndTimesForLastTask[lastTaskIndex] = currentTime;
+      setEndTimes(updatedEndTimesForLastTask);
+    }
+
     setShowTotalTime(true);
     setIsTimeRunning((prev) =>
       prev.map((value, index) => (index === tasks.length - 1 ? false : value))
@@ -194,53 +250,139 @@ export default function ActivitiesInfo() {
             Lista czynności i ich czas
           </Heading>
         </View>
+        <View
+          style={{
+            width: screenWidth - 30,
+            height: 50,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#363636",
+            borderWidth: 1,
+            borderColor: "#262626",
+            borderRadius: 10,
+            padding: 10,
+            marginBottom: 14,
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                alignItems: "flex-start",
+              }}
+            >
+              <Text
+                color="gray.400"
+                style={{
+                  fontSize: 15,
+                }}
+              >
+                Id
+              </Text>
+            </View>
+            <View style={{ flex: 2 }}>
+              <Text color="gray.400" style={{ fontSize: 15 }}>
+                Nazwa
+              </Text>
+            </View>
+            <View style={{ flex: 3 }}>
+              <Text color="gray.400" style={{ fontSize: 15 }}>
+                Wykonane
+              </Text>
+            </View>
+            <View style={{}}>
+              <Text color="gray.400" style={{ fontSize: 15 }}>
+                Godzina
+              </Text>
+            </View>
+            <View style={{ flex: 2, alignItems: "flex-end" }}>
+              <Text color="gray.400" style={{ fontSize: 15 }}>
+                Czas
+              </Text>
+            </View>
+          </View>
+        </View>
         <View style={{ marginTop: 5, marginBottom: 5 }}>
           {tasks.length === 0 ? (
             <Text color="white" style={{ fontSize: 18 }}>
               Brak zadań do wykonania
             </Text>
           ) : (
-            tasks.map((task, index) => (
-              <View
-                key={task.id}
-                style={{
-                  width: screenWidth - 30,
-                  height: 70,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-around",
-                  backgroundColor: "#363636",
-                  borderWidth: 1,
-                  borderColor: "#262626",
-                  borderRadius: 10,
-                  padding: 10,
-                  marginBottom: 10,
-                }}
-              >
-                <Text color="white" style={{ fontSize: 18 }}>
-                  {index + 1}. {task.name}
-                </Text>
+            <>
+              {tasks.map((task, index) => (
                 <View
+                  key={task.id}
                   style={{
-                    flex: 1,
-                    marginLeft: 20,
-                    alignItems: "flex-start",
+                    width: screenWidth - 30,
+                    height: 70,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#363636",
+                    borderWidth: 1,
+                    borderColor: "#262626",
+                    borderRadius: 10,
+                    padding: 10,
+                    marginBottom: 10,
                   }}
                 >
-                  <Checkbox
-                    value={isTimeRunning[index] ? "unchecked" : "checked"}
-                    onChange={() => toggleTimeRunning(index)}
-                    colorScheme="green"
-                    size="lg"
-                    aria-label="Uruchom/zatrzymaj czas"
-                    isChecked={!isTimeRunning[index]}
-                  />
+                  <View
+                    style={{
+                      flex: 1,
+                      width: "100%",
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                  >
+                    <View
+                      style={{
+                        flex: 1,
+                        flexDirection: "row",
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <Text color="white" style={{ fontSize: 18 }}>
+                        {index + 1}.
+                      </Text>
+                    </View>
+                    <View style={{ flex: 2 }}>
+                      <Text color="white" style={{ fontSize: 18 }}>
+                        {task.name}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 3 }}>
+                      <Checkbox
+                        style={{ marginLeft: 20 }}
+                        value={isTimeRunning[index] ? "unchecked" : "checked"}
+                        onChange={() => toggleTimeRunning(index)}
+                        colorScheme="green"
+                        size="lg"
+                        aria-label="Uruchom/zatrzymaj czas"
+                        isChecked={!isTimeRunning[index]}
+                      />
+                    </View>
+                    <View style={{}}>
+                      <Text color="white" style={{ fontSize: 18 }}>
+                        {endTimes[index] || "00:00"}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 2, alignItems: "flex-end" }}>
+                      <Text color="white" style={{ fontSize: 18 }}>
+                        {formatElapsedTime(task.elapsedTime)}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-                <Text color="white" style={{ fontSize: 18 }}>
-                  {formatElapsedTime(task.elapsedTime)}
-                </Text>
-              </View>
-            ))
+              ))}
+            </>
           )}
         </View>
 

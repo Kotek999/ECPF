@@ -2,13 +2,36 @@ import React from "react";
 import { ScrollView, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { View, Text, Heading } from "native-base";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { screenHeight, screenWidth } from "../helpers/dimensions";
 
 export default function GeneralInfo() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  const params = useLocalSearchParams<{
+    field1?: string;
+    field2?: string;
+    field3?: string;
+    field4?: string;
+
+    selectedValue?: string;
+  }>();
+
+  const aktualnaData = () => {
+    const data = new Date();
+    const dzien = data.getDate();
+    const miesiac = data.getMonth() + 1;
+    const rok = data.getFullYear();
+
+    const dzienString = dzien < 10 ? `0${dzien}` : `${dzien}`;
+    const miesiacString = miesiac < 10 ? `0${miesiac}` : `${miesiac}`;
+
+    const dataString = `${dzienString}.${miesiacString}.${rok}`;
+
+    return <Text>{dataString}</Text>;
+  };
 
   return (
     <View
@@ -67,30 +90,89 @@ export default function GeneralInfo() {
               borderRadius: 8,
               elevation: 3,
               width: screenWidth - 25,
-              justifyContent: "center",
-              alignItems: "center",
             }}
           >
-            <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
-              Forma
-            </Text>
-            <View
-              style={{
-                marginTop: 10,
-                alignItems: "flex-start",
-                justifyContent: "flex-start",
-                alignSelf: "flex-start",
-              }}
-            >
-              <Text color="gray.200" style={{ fontSize: 16, marginBottom: 5 }}>
-                Numer:
+            <View style={{ alignItems: "center" }}>
+              <Text
+                style={{ color: "white", fontSize: 20, fontWeight: "bold" }}
+              >
+                Forma
               </Text>
-              <Text color="gray.200" style={{ fontSize: 16, marginBottom: 5 }}>
-                Waga:
-              </Text>
-              <Text color="gray.200" style={{ fontSize: 16, marginBottom: 5 }}>
-                Właściciel:
-              </Text>
+            </View>
+
+            <View style={{ flexDirection: "column" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  color="gray.200"
+                  style={{ flex: 1, fontSize: 16, marginBottom: 5 }}
+                >
+                  Numer:
+                </Text>
+                <Text
+                  color="gray.200"
+                  style={{
+                    flex: 1,
+                    textAlign: "right",
+                    fontSize: 16,
+                    marginBottom: 5,
+                  }}
+                >
+                  {params.field1}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  color="gray.200"
+                  style={{ flex: 1, fontSize: 16, marginBottom: 5 }}
+                >
+                  Waga:
+                </Text>
+                <Text
+                  color="gray.200"
+                  style={{
+                    flex: 1,
+                    textAlign: "right",
+                    fontSize: 16,
+                    marginBottom: 5,
+                  }}
+                >
+                  {params.field2}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  color="gray.200"
+                  style={{ flex: 1, fontSize: 16, marginBottom: 5 }}
+                >
+                  Właściciel:
+                </Text>
+                <Text
+                  color="gray.200"
+                  style={{
+                    flex: 1,
+                    textAlign: "right",
+                    fontSize: 16,
+                    marginBottom: 5,
+                  }}
+                >
+                  {params.field3}
+                </Text>
+              </View>
             </View>
           </View>
           <View
@@ -102,30 +184,89 @@ export default function GeneralInfo() {
               borderRadius: 8,
               elevation: 3,
               width: screenWidth - 25,
-              justifyContent: "center",
-              alignItems: "center",
             }}
           >
-            <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
-              Pracownik
-            </Text>
-            <View
-              style={{
-                marginTop: 10,
-                alignItems: "flex-start",
-                justifyContent: "flex-start",
-                alignSelf: "flex-start",
-              }}
-            >
-              <Text color="gray.200" style={{ fontSize: 16, marginBottom: 5 }}>
-                Numer:
+            <View style={{ alignItems: "center" }}>
+              <Text
+                style={{ color: "white", fontSize: 20, fontWeight: "bold" }}
+              >
+                Pracownik
               </Text>
-              <Text color="gray.200" style={{ fontSize: 16, marginBottom: 5 }}>
-                Zmiana:
-              </Text>
-              <Text color="gray.200" style={{ fontSize: 16, marginBottom: 5 }}>
-                Data:
-              </Text>
+            </View>
+
+            <View style={{ flexDirection: "column" }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  color="gray.200"
+                  style={{ flex: 1, fontSize: 16, marginBottom: 5 }}
+                >
+                  Numer:
+                </Text>
+                <Text
+                  color="gray.200"
+                  style={{
+                    flex: 1,
+                    textAlign: "right",
+                    fontSize: 16,
+                    marginBottom: 5,
+                  }}
+                >
+                  {params.field4}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  color="gray.200"
+                  style={{ flex: 1, fontSize: 16, marginBottom: 5 }}
+                >
+                  Zmiana:
+                </Text>
+                <Text
+                  color="gray.200"
+                  style={{
+                    flex: 1,
+                    textAlign: "right",
+                    fontSize: 16,
+                    marginBottom: 5,
+                  }}
+                >
+                  {params.selectedValue}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text
+                  color="gray.200"
+                  style={{ flex: 1, fontSize: 16, marginBottom: 5 }}
+                >
+                  Data:
+                </Text>
+                <Text
+                  color="gray.200"
+                  style={{
+                    flex: 1,
+                    textAlign: "right",
+                    fontSize: 16,
+                    marginBottom: 5,
+                  }}
+                >
+                  {aktualnaData()}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
