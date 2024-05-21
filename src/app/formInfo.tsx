@@ -2,13 +2,22 @@ import React from "react";
 import { ScrollView, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { View, Text, Heading, Input } from "native-base";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { screenHeight, screenWidth } from "../helpers/dimensions";
 
 export default function FormInfo() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  const params = useLocalSearchParams<{
+    field1?: string;
+    field2?: string;
+    field3?: string;
+  }>();
+
+  const handleChange = (fieldName: string, value: string) => {
+    router.setParams({ ...params, [fieldName]: value });
+  };
 
   return (
     <View
@@ -69,7 +78,6 @@ export default function FormInfo() {
               Numer:
             </Text>
             <Input
-              width="70%"
               borderRadius={10}
               bg="white"
               marginBottom="5"
@@ -81,12 +89,13 @@ export default function FormInfo() {
                 borderColor: "transparent",
               }}
               placeholder="numer"
+              value={params.field1 || ""}
+              onChangeText={(value) => handleChange("field1", value)}
             />
             <Text marginBottom="4" fontSize="xl" color="trueGray.200">
               Waga:
             </Text>
             <Input
-              width="70%"
               borderRadius={10}
               bg="white"
               marginBottom="5"
@@ -98,12 +107,13 @@ export default function FormInfo() {
                 borderColor: "transparent",
               }}
               placeholder="waga"
+              value={params.field2 || ""}
+              onChangeText={(value) => handleChange("field2", value)}
             />
             <Text marginBottom="4" fontSize="xl" color="trueGray.200">
               Właściciel:
             </Text>
             <Input
-              width="70%"
               borderRadius={10}
               bg="white"
               marginBottom="5"
@@ -115,6 +125,8 @@ export default function FormInfo() {
                 borderColor: "transparent",
               }}
               placeholder="właściciel"
+              value={params.field3 || ""}
+              onChangeText={(value) => handleChange("field3", value)}
             />
           </View>
         </View>
@@ -128,7 +140,13 @@ export default function FormInfo() {
               alignItems: "center",
               alignContent: "center",
             }}
-            onPress={() => router.navigate("/employeeInfo")}
+            onPress={() =>
+              router.navigate(
+                `/employeeInfo?field1=${params.field1 || ""}&field2=${
+                  params.field2 || ""
+                }&field3=${params.field3 || ""}`
+              )
+            }
           >
             <Text
               style={{

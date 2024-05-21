@@ -1,14 +1,38 @@
-import React from "react";
+import React, { useState } from "react";
 import { ScrollView, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { View, Text, Heading, Input, Radio } from "native-base";
-import { useRouter } from "expo-router";
+import { View, Text, Heading, Input, Checkbox } from "native-base";
+import { useLocalSearchParams, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { screenHeight, screenWidth } from "../helpers/dimensions";
 
 export default function EmployeeInfo() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  const params = useLocalSearchParams<{
+    field1?: string;
+    field2?: string;
+    field3?: string;
+    field4?: string;
+
+    selectedValue?: string;
+  }>();
+  const handleChange = (fieldName: string, value: string) => {
+    router.setParams({ ...params, [fieldName]: value });
+  };
+
+  const [selectedValue, setSelectedValue] = useState<string | null>(null);
+
+  const timeChange = (value: string) => {
+    router.setParams({ selectedValue: value });
+  };
+
+  const handleCheckboxChange = (value: string) => {
+    setSelectedValue((prevValue) => (prevValue !== value ? value : null));
+    timeChange(value);
+  };
+
+  const times = ["6:00", "14:00", "22:00"];
 
   return (
     <View
@@ -70,7 +94,6 @@ export default function EmployeeInfo() {
               Numer Id Pracownika:
             </Text>
             <Input
-              width={screenWidth / 1.5}
               borderRadius={10}
               bg="white"
               fontSize="md"
@@ -82,31 +105,26 @@ export default function EmployeeInfo() {
               }}
               placeholder="numer id"
               marginBottom="5"
+              value={params.field4 || ""}
+              onChangeText={(value) => handleChange("field4", value)}
             />
             <Text marginBottom="2" fontSize="xl" color="trueGray.200">
               Zmiana:
             </Text>
-            <Radio.Group
-              defaultValue="0"
-              name="exampleGroup"
-              accessibilityLabel="favorite colorscheme"
-            >
-              <Radio colorScheme="emerald" value="1" my={2}>
+            {times.map((time, index) => (
+              <Checkbox
+                key={index}
+                colorScheme="green"
+                my={2}
+                value={params.selectedValue || ""}
+                isChecked={selectedValue === time}
+                onChange={() => handleCheckboxChange(time)}
+              >
                 <Text color="trueGray.200" fontSize="sm">
-                  6:00
+                  {time}
                 </Text>
-              </Radio>
-              <Radio colorScheme="emerald" value="2" my={2}>
-                <Text color="trueGray.200" fontSize="sm">
-                  14:00
-                </Text>
-              </Radio>
-              <Radio colorScheme="emerald" value="3" my={2}>
-                <Text color="trueGray.200" fontSize="sm">
-                  22:00
-                </Text>
-              </Radio>
-            </Radio.Group>
+              </Checkbox>
+            ))}
           </View>
         </View>
         <View style={{ marginTop: 40, alignItems: "center" }}>
@@ -119,7 +137,15 @@ export default function EmployeeInfo() {
               alignItems: "center",
               alignContent: "center",
             }}
-            onPress={() => router.navigate("/generalInfo")}
+            onPress={() =>
+              router.navigate(
+                `/generalInfo?field1=${params.field1 || ""}&field2=${
+                  params.field2 || ""
+                }&field3=${params.field3 || ""}&field4=${
+                  params.field4 || ""
+                }&selectedValue=${params.selectedValue || ""}`
+              )
+            }
           >
             <Text
               style={{
