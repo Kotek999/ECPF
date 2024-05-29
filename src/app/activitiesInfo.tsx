@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TouchableOpacity, ScrollView } from "react-native";
+import { TouchableOpacity, ScrollView, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   View,
@@ -13,25 +13,30 @@ import {
   Icon,
 } from "native-base";
 import { StatusBar } from "expo-status-bar";
-import { FontAwesome5 } from "@expo/vector-icons";
+import {
+  FontAwesome5,
+  AntDesign,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import { screenHeight, screenWidth } from "../helpers/dimensions";
 
 export default function ActivitiesInfo() {
   const insets = useSafeAreaInsets();
 
-  type Task = {
+  type TasksProps = {
     id: number;
     name: string;
+  };
+
+  type Task = TasksProps & {
     serialNumber: string;
     originalTime: string;
     elapsedTime: number;
-  };
-
-  const getCurrentTime = (): string => {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, "0");
-    const minutes = now.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
+    icon: string | null;
+    text: string;
+    submitted: boolean;
+    locked: boolean;
   };
 
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -42,40 +47,116 @@ export default function ActivitiesInfo() {
   const [intervalIds, setIntervalIds] = useState<NodeJS.Timeout[]>([]);
 
   const [showTotalTime, setShowTotalTime] = useState<boolean>(false);
-
-  const [isSelectedActivity, setIsSelectedActivity] = useState<boolean>(false);
-
   const [endTimes, setEndTimes] = useState<string[]>([]);
 
-  const availableTasks: string[] = [
-    "Task 1",
-    "Task 2",
-    "Task 3",
-    "Task 4",
-    "Task 5",
-    "Task 6",
-    "Task 7",
-    "Task 8",
-    "Task 9",
-    "Task 10",
-    "Task 11",
-    "Task 12",
-    "Task 13",
-    "Task 14",
-    "Task 15",
-    "Task 16",
-    "Task 17",
-    "Task 18",
-    "Task 19",
-    "Task 20",
-    "Task 21",
+  const [activityFieldErrorMessage, setActivityFieldErrorMessage] =
+    useState<string>("");
+  const [commentFieldErrorMessage, setCommentFieldErrorMessage] =
+    useState<string>("");
+
+  type AvailableTasksData = TasksProps[];
+
+  const testTasks: AvailableTasksData = [
+    {
+      id: 1,
+      name: "Task 1",
+    },
+    {
+      id: 2,
+      name: "Task 2",
+    },
+    {
+      id: 3,
+      name: "Task 3",
+    },
+    {
+      id: 4,
+      name: "Task 4",
+    },
+    {
+      id: 5,
+      name: "Task 5",
+    },
+    {
+      id: 6,
+      name: "Task 6",
+    },
+    {
+      id: 7,
+      name: "Task 7",
+    },
+    {
+      id: 8,
+      name: "Task 8",
+    },
+    {
+      id: 9,
+      name: "Task 9",
+    },
+    {
+      id: 10,
+      name: "Task 10",
+    },
+    {
+      id: 11,
+      name: "Task 11",
+    },
+    {
+      id: 12,
+      name: "Task 12",
+    },
+    {
+      id: 13,
+      name: "Task 13",
+    },
+    {
+      id: 14,
+      name: "Task 14",
+    },
+    {
+      id: 15,
+      name: "Task 15",
+    },
+    {
+      id: 16,
+      name: "Task 16",
+    },
+    {
+      id: 17,
+      name: "Task 17",
+    },
+    {
+      id: 18,
+      name: "Task 18",
+    },
+    {
+      id: 19,
+      name: "Task 19",
+    },
+    {
+      id: 20,
+      name: "Task 20",
+    },
+    {
+      id: 21,
+      name: "Task 21",
+    },
   ];
 
+  const getCurrentTime = (): string => {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, "0");
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
+
   const addTask = () => {
-    if (selectedTask.trim() === "") {
-      setIsSelectedActivity(true);
+    if (!selectedTask) {
+      setActivityFieldErrorMessage("Nie wybrano żadnej czynności z listy");
       return;
     }
+
+    const selectedTaskObj: TasksProps = JSON.parse(selectedTask);
 
     if (tasks.length > 0) {
       clearInterval(intervalIds[tasks.length - 1]);
@@ -88,11 +169,14 @@ export default function ActivitiesInfo() {
     }
 
     const newTask: Task = {
-      id: Date.now(),
-      name: selectedTask,
-      serialNumber: "123",
-      originalTime: "0s",
+      ...selectedTaskObj,
+      serialNumber: `Task-${tasks.length + 1}`,
+      originalTime: getCurrentTime(),
       elapsedTime: 0,
+      icon: null,
+      text: "",
+      submitted: false,
+      locked: false,
     };
 
     setTasks([...tasks, newTask]);
@@ -102,6 +186,43 @@ export default function ActivitiesInfo() {
       ...prev,
       setInterval(() => updateElapsedTime(tasks.length), 1000),
     ]);
+    setActivityFieldErrorMessage("");
+  };
+
+  const handleIconPress = (taskId: number, icon: string) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              icon: icon === "dislike2" ? "dislike2" : icon,
+              submitted: icon === "dislike2" ? false : task.submitted,
+              text: icon === "dislike2" ? "" : task.text,
+              locked: icon !== "dislike2",
+            }
+          : task
+      )
+    );
+  };
+
+  const handleTextChange = (taskId: number, text: string) => {
+    setTasks(
+      tasks.map((task) => (task.id === taskId ? { ...task, text } : task))
+    );
+  };
+
+  const handleSubmit = (taskId: number) => {
+    const task = tasks.find((task) => task.id === taskId);
+    if (task?.text.trim() === "") {
+      setCommentFieldErrorMessage("Pole tekstowe nie może być puste.");
+    } else {
+      setTasks(
+        tasks.map((task) =>
+          task.id === taskId ? { ...task, submitted: true, locked: true } : task
+        )
+      );
+      setCommentFieldErrorMessage("");
+    }
   };
 
   const toggleTimeRunning = (index: number) => {
@@ -160,7 +281,6 @@ export default function ActivitiesInfo() {
     const seconds = timeInSeconds % 60;
 
     if (hours > 0) {
-      // return `${hours} godz ${minutes} min`;
       return `${hours} godz`;
     } else if (minutes > 0) {
       return `${minutes} min`;
@@ -174,13 +294,33 @@ export default function ActivitiesInfo() {
     const minutes = Math.floor((timeInSeconds % 3600) / 60);
     const seconds = timeInSeconds % 60;
 
+    let formattedTime = "";
+
     if (hours > 0) {
-      return `${hours}godz ${minutes}min ${seconds}s`;
-    } else if (minutes > 0) {
-      return `${minutes} min ${seconds} s`;
-    } else {
-      return `${seconds}s`;
+      formattedTime += `${hours} ${
+        hours === 1 ? "godzina" : hours < 5 ? "godziny" : "godzin"
+      } `;
     }
+
+    if (minutes > 0) {
+      formattedTime += `${minutes} ${
+        minutes === 1 ? "minuta" : minutes < 5 ? "minuty" : "minut"
+      } `;
+    }
+
+    if (seconds > 0 || (hours === 0 && minutes === 0)) {
+      formattedTime += `${seconds} ${
+        seconds === 1
+          ? "sekunda"
+          : seconds % 10 >= 2 &&
+            seconds % 10 <= 4 &&
+            (seconds % 100 < 10 || seconds % 100 >= 20)
+          ? "sekundy"
+          : "sekund"
+      }`;
+    }
+
+    return formattedTime.trim();
   };
 
   const calculateTotalTime = () => {
@@ -218,7 +358,6 @@ export default function ActivitiesInfo() {
         justifyContent: "flex-start",
         alignItems: "center",
         alignContent: "center",
-        // backgroundColor: "#2C3E50",
         backgroundColor: "#262626",
       }}
     >
@@ -253,20 +392,17 @@ export default function ActivitiesInfo() {
         <View
           style={{
             width: screenWidth - 30,
-            height: 50,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
             backgroundColor: "#363636",
             borderWidth: 1,
             borderColor: "#262626",
             borderRadius: 10,
             padding: 10,
-            marginBottom: 14,
+            marginBottom: 8,
           }}
         >
           <View
             style={{
+              flex: 1,
               width: "100%",
               flexDirection: "row",
               alignItems: "center",
@@ -274,7 +410,7 @@ export default function ActivitiesInfo() {
           >
             <View
               style={{
-                flex: 1,
+                flex: 2,
                 flexDirection: "row",
                 alignItems: "flex-start",
               }}
@@ -285,20 +421,20 @@ export default function ActivitiesInfo() {
                   fontSize: 15,
                 }}
               >
-                Id
+                L.P
               </Text>
             </View>
-            <View style={{ flex: 2 }}>
-              <Text color="gray.400" style={{ fontSize: 15 }}>
-                Nazwa
-              </Text>
-            </View>
-            <View style={{ flex: 3 }}>
-              <Text color="gray.400" style={{ fontSize: 15 }}>
+            <View style={{ flex: 5 }}>
+              <Text
+                color="gray.400"
+                style={{
+                  fontSize: 15,
+                }}
+              >
                 Wykonane
               </Text>
             </View>
-            <View style={{}}>
+            <View style={{ flex: 4 }}>
               <Text color="gray.400" style={{ fontSize: 15 }}>
                 Godzina
               </Text>
@@ -322,10 +458,6 @@ export default function ActivitiesInfo() {
                   key={task.id}
                   style={{
                     width: screenWidth - 30,
-                    height: 70,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
                     backgroundColor: "#363636",
                     borderWidth: 1,
                     borderColor: "#262626",
@@ -336,48 +468,246 @@ export default function ActivitiesInfo() {
                 >
                   <View
                     style={{
-                      flex: 1,
-                      width: "100%",
+                      marginTop: 5,
+                      height: 25,
                       flexDirection: "row",
-                      alignItems: "center",
+                      justifyContent: "space-between",
+                      backgroundColor: "transparent",
                     }}
                   >
-                    <View
+                    <Text
+                      color="gray.400"
                       style={{
-                        flex: 1,
-                        flexDirection: "row",
-                        alignItems: "flex-start",
+                        textAlign: "left",
+                        fontSize: 15,
                       }}
                     >
-                      <Text color="white" style={{ fontSize: 18 }}>
-                        {index + 1}.
-                      </Text>
+                      Przedmiot kontroli
+                    </Text>
+                    <Text
+                      color="gray.400"
+                      style={{
+                        textAlign: "right",
+                        fontSize: 15,
+                      }}
+                    >
+                      {!task.icon && (
+                        <>
+                          <TouchableOpacity
+                            onPress={() => handleIconPress(task.id, "like1")}
+                          >
+                            <Icon
+                              style={{ marginRight: 10 }}
+                              as={<AntDesign name="like2" />}
+                              size={6}
+                              color="green.500"
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => handleIconPress(task.id, "dislike1")}
+                          >
+                            <Icon
+                              style={{ marginRight: 10 }}
+                              as={<AntDesign name="dislike2" />}
+                              size={6}
+                              color="red.500"
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() =>
+                              handleIconPress(task.id, "minus-circle")
+                            }
+                          >
+                            <Icon
+                              as={
+                                <MaterialCommunityIcons name="minus-circle-outline" />
+                              }
+                              size={6}
+                              color="blue.500"
+                            />
+                          </TouchableOpacity>
+                        </>
+                      )}
+                      {task.icon === "like1" && (
+                        <TouchableOpacity
+                          onPress={() => handleIconPress(task.id, "like1")}
+                        >
+                          <Icon
+                            style={{ marginRight: 5 }}
+                            as={<AntDesign name="like1" />}
+                            size={6}
+                            color="green.500"
+                          />
+                        </TouchableOpacity>
+                      )}
+                      {task.icon === "dislike1" && (
+                        <TouchableOpacity
+                          onPress={() => handleIconPress(task.id, "dislike1")}
+                        >
+                          <Icon
+                            style={{ marginRight: 5 }}
+                            as={<AntDesign name="dislike1" />}
+                            size={6}
+                            color="red.500"
+                          />
+                        </TouchableOpacity>
+                      )}
+                      {task.icon === "minus-circle" && (
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleIconPress(task.id, "minus-circle")
+                          }
+                        >
+                          <Icon
+                            style={{ marginRight: 5 }}
+                            as={<MaterialCommunityIcons name="minus-circle" />}
+                            size={6}
+                            color="blue.500"
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </Text>
+                  </View>
+                  <Text
+                    color="white"
+                    style={{
+                      alignSelf: "flex-start",
+                      textAlign: "left",
+                      marginTop: 10,
+                      marginBottom: 0,
+                      fontSize: 16,
+                    }}
+                  >
+                    {task.name}
+                  </Text>
+                  {task.icon === "dislike1" ? (
+                    <Text
+                      color="gray.400"
+                      style={{
+                        fontSize: 15,
+                        marginTop: 10,
+                        marginBottom: 5,
+                      }}
+                    >
+                      Uwagi
+                    </Text>
+                  ) : null}
+                  {task.icon === "dislike1" && !task.submitted && (
+                    <View style={{ marginTop: 10, marginBottom: 10 }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <TextInput
+                          placeholderTextColor="gray"
+                          style={{
+                            width: screenWidth / 1.4,
+                            backgroundColor: "#363636",
+                            color: "white",
+                            borderColor:
+                              commentFieldErrorMessage !== "" ? "red" : "gray",
+                            borderWidth: 0.6,
+                            marginBottom: 0,
+                            paddingHorizontal: 5,
+                            borderRadius: 5,
+                          }}
+                          placeholder="Wpisz uwagę"
+                          value={task.text}
+                          onChangeText={(text) =>
+                            handleTextChange(task.id, text)
+                          }
+                        />
+                        <TouchableOpacity onPress={() => handleSubmit(task.id)}>
+                          <Icon
+                            style={{ marginRight: 5 }}
+                            as={<MaterialIcons name="add-comment" />}
+                            size={6}
+                            color="#ff1744"
+                          />
+                        </TouchableOpacity>
+                      </View>
+
+                      {commentFieldErrorMessage !== "" && (
+                        <View
+                          style={{
+                            marginTop: 10,
+                            flexDirection: "row",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Icon
+                            as={<FontAwesome5 name="exclamation-circle" />}
+                            size={4}
+                            color="red.500"
+                          />
+                          <Text
+                            color="red.500"
+                            style={{ marginLeft: 6, fontSize: 14 }}
+                          >
+                            {commentFieldErrorMessage}
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                    <View style={{ flex: 2 }}>
-                      <Text color="white" style={{ fontSize: 18 }}>
-                        {task.name}
-                      </Text>
-                    </View>
-                    <View style={{ flex: 3 }}>
-                      <Checkbox
-                        style={{ marginLeft: 20 }}
-                        value={isTimeRunning[index] ? "unchecked" : "checked"}
-                        onChange={() => toggleTimeRunning(index)}
-                        colorScheme="green"
-                        size="lg"
-                        aria-label="Uruchom/zatrzymaj czas"
-                        isChecked={!isTimeRunning[index]}
-                      />
-                    </View>
-                    <View style={{}}>
-                      <Text color="white" style={{ fontSize: 18 }}>
-                        {endTimes[index] || "00:00"}
-                      </Text>
-                    </View>
-                    <View style={{ flex: 2, alignItems: "flex-end" }}>
-                      <Text color="white" style={{ fontSize: 18 }}>
-                        {formatElapsedTime(task.elapsedTime)}
-                      </Text>
+                  )}
+                  {task.submitted && task.text !== "" && (
+                    <Text
+                      color="yellow.400"
+                      style={{
+                        alignSelf: "flex-start",
+                        textAlign: "left",
+                        marginTop: 0,
+                        marginBottom: 0,
+                        fontSize: 14,
+                      }}
+                    >
+                      {task.text}
+                    </Text>
+                  )}
+                  <View>
+                    <View
+                      style={{
+                        marginTop: 20,
+                        flex: 1,
+                        width: "100%",
+                        flexDirection: "row",
+                        alignItems: "center",
+                      }}
+                    >
+                      <View
+                        style={{
+                          flex: 2,
+                          flexDirection: "row",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <Text color="white" style={{ fontSize: 18 }}>
+                          {task.id}.
+                        </Text>
+                      </View>
+                      <View style={{ flex: 5 }}>
+                        <Checkbox
+                          style={{ marginLeft: 20 }}
+                          value={isTimeRunning[index] ? "unchecked" : "checked"}
+                          onChange={() => toggleTimeRunning(index)}
+                          colorScheme="green"
+                          size="lg"
+                          aria-label="Uruchom/zatrzymaj czas"
+                          isChecked={!isTimeRunning[index]}
+                        />
+                      </View>
+                      <View style={{ flex: 4 }}>
+                        <Text color="white" style={{ fontSize: 18 }}>
+                          {endTimes[index] || "00:00"}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 2, alignItems: "flex-end" }}>
+                        <Text color="white" style={{ fontSize: 18 }}>
+                          {formatElapsedTime(task.elapsedTime)}
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -421,7 +751,6 @@ export default function ActivitiesInfo() {
                 Podsumowanie Pracy:
               </Heading>
             </View>
-
             <View
               style={{
                 width: screenWidth - 30,
@@ -437,23 +766,11 @@ export default function ActivitiesInfo() {
                 marginBottom: 10,
               }}
             >
-              {/* <Text color="red.400" style={{ fontSize: 18 }}>
-              coś...
-            </Text> */}
-              {/* <View
-              style={{
-                flex: 1,
-                marginLeft: 20,
-                alignItems: "flex-start",
-              }}
-            >
-              <Text color="red.400" style={{ fontSize: 18 }}>
-                coś...
-              </Text>
-            </View> */}
-              {/* <Text color="red.400" style={{ fontSize: 18 }}>
-          e29uie29e2iie2
-        </Text> */}
+              <View style={{ flex: 1, justifyContent: "flex-start" }}>
+                <Text color="gray.400" style={{ fontSize: 14 }}>
+                  Dodane czynności: <Text color="white">{tasks.length}</Text>
+                </Text>
+              </View>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Text
                   color="white"
@@ -476,18 +793,24 @@ export default function ActivitiesInfo() {
           <Select
             fontSize="xl"
             color="white"
-            borderColor="transparent"
+            borderColor={
+              activityFieldErrorMessage !== "" ? "red.500" : "transparent"
+            }
             selectedValue={selectedTask}
             accessibilityLabel="Wybierz czynność"
             placeholder="Wybierz czynność"
             onValueChange={(itemValue) => setSelectedTask(itemValue)}
           >
-            {availableTasks.map((task, index) => (
-              <Select.Item key={index} label={task} value={task} />
+            {testTasks.map((task) => (
+              <Select.Item
+                key={task.id}
+                label={task.name}
+                value={JSON.stringify(task)}
+              />
             ))}
           </Select>
         </Box>
-        {isSelectedActivity && tasks.length === 0 && (
+        {activityFieldErrorMessage !== "" && (
           <View style={{ flexDirection: "row" }}>
             <Icon
               as={<FontAwesome5 name="exclamation-circle" />}
@@ -495,7 +818,7 @@ export default function ActivitiesInfo() {
               color="red.500"
             />
             <Text color="red.500" style={{ marginLeft: 8, fontSize: 16 }}>
-              Nie dodano żadnej czynności z listy
+              {activityFieldErrorMessage}
             </Text>
           </View>
         )}
